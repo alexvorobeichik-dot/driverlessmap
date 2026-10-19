@@ -128,6 +128,44 @@ class SiteTests(unittest.TestCase):
         colours = [server.OPERATOR_COLOURS[o] for o in operators]
         self.assertEqual(len(colours), len(set(colours)), 'colours must be distinct')
 
+    def test_home_includes_the_map(self):
+        _, _, body = self.get('/')
+        self.assertIn('class="usmap"', body)
+        self.assertIn('role="img"', body)
+        self.assertEqual(body.count('<path class="st'), len(server.STATE_PATHS),
+                         'one outline per state')
+        states = {c['region'] for c in server.CITIES}
+        self.assertEqual(body.count('class="st on"'), len(states),
+                         'the states with service should be highlighted')
+        self.assertEqual(body.count('<circle'), len(server.CITIES),
+                         'one dot per city service')
+
+    def test_every_city_has_map_coordinates(self):
+        # A city without a projected point would silently vanish from the map,
+        # which is worse than the map not existing at all.
+        for city in {c['city'] for c in server.CITIES}:
+            with self.subTest(city=city):
+                self.assertIn(city, server.CITY_POINTS)
+
+    def test_every_service_state_has_a_label(self):
+        for state in {c['region'] for c in server.CITIES}:
+            with self.subTest(state=state):
+                self.assertIn(state, server.STATE_LABELS)
+
+    def test_map_geometry_is_sane(self):
+        # Every coordinate has to land inside the viewBox, or states fall off the
+        # edge of the map. Cheap check, catches a broken projection.
+        width, height = (float(n) for n in server.MAP_VIEWBOX.split()[2:4])
+        for code, path in server.STATE_PATHS.items():
+            with self.subTest(state=code):
+                numbers = [float(n) for n in path.replace('M', ' ').replace('L', ' ')
+                           .replace('Z', ' ').split()]
+                xs, ys = numbers[0::2], numbers[1::2]
+                self.assertGreaterEqual(min(xs), -1)
+                self.assertLessEqual(max(xs), width + 1)
+                self.assertGreaterEqual(min(ys), -1)
+                self.assertLessEqual(max(ys), height + 1)
+
     def test_operators_page_covers_all_four(self):
         status, _, body = self.get('/operators')
         self.assertEqual(status, 200)

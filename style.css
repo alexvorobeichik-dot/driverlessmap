@@ -105,3 +105,17 @@ footer p{max-width:80ch}
   .stats b{font-size:32px}
   .coverage{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
 }
+/* The map. Outlines are Natural Earth geometry (public domain); the highlighted
+   states and the dots are drawn from the same tables as the list below, so the
+   two cannot disagree. Strokes are non-scaling so they stay crisp at any size. */
+.usmap{width:100%;height:auto;display:block;margin:22px 0 6px}
+.usmap .st{fill:#161a18;stroke:#2c322c;stroke-width:1;vector-effect:non-scaling-stroke}
+.usmap .st.on{fill:#22322a;stroke:#3f6b52}
+.usmap .stlabel{fill:var(--accent);font-size:13px;font-weight:700;text-anchor:middle;dominant-baseline:middle;letter-spacing:.6px}
+.usmap circle{stroke:#0e100f;stroke-width:1.5}
+
+@media (max-width:700px){
+  /* The viewBox scales the type down with the map, leaving state labels
+     illegible. The list underneath carries the same information. */
+  .usmap .stlabel{display:none}
+}
