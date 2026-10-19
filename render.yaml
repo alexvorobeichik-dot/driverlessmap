@@ -1,0 +1,25 @@
+# Render blueprint for Driverless Map.
+#
+# No disk and no database, deliberately. There is no user-generated content, so
+# there is no mutable state to persist: deploys are zero-downtime and the service
+# can be scaled or replaced without a migration. Compare the forum this was
+# extracted from, which needs a persistent disk and therefore cannot be scaled
+# horizontally at all.
+services:
+  - type: web
+    name: driverlessmap
+    runtime: python
+    plan: starter
+    region: ohio
+    branch: main
+    buildCommand: python -m compileall -q server.py test_site.py
+    startCommand: python server.py
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.9
+      - key: HOST
+        value: 0.0.0.0
+      # Canonical origin for links, canonical tags and the sitemap.
+      - key: SITE_URL
+        value: https://driverlessmap.com
