@@ -291,7 +291,7 @@ class Handler(BaseHTTPRequestHandler):
     def send(self, code, body, content_type='text/html; charset=utf-8', cache=None):
         self.send_raw(code, body.encode('utf-8'), content_type, cache)
 
-    def page(self, title, content, description=None, path='/', cache=None):
+    def page(self, title, content, description=None, path='/', cache=None, code=200):
         full_title = f'{title} · {SITE_NAME}' if title else SITE_NAME
         desc = description or DEFAULT_DESCRIPTION
         canonical = SITE_URL + path
@@ -333,7 +333,7 @@ class Handler(BaseHTTPRequestHandler):
 </footer>
 </body>
 </html>'''
-        self.send(200, body, cache=cache)
+        self.send(code, body, cache=cache)
 
     def do_GET(self):
         parsed = urlparse(self.path)
@@ -383,9 +383,12 @@ class Handler(BaseHTTPRequestHandler):
         if path == '/about':
             return self.about()
 
+        # A real 404, not a friendly page claiming to be fine. Returning 200 for
+        # a URL that does not exist is a soft 404: crawlers index the junk and
+        # spend crawl budget on this domain rather than on the pages that matter.
         self.page('Not found', '<h1>Not found</h1><p>That page does not exist. '
                                '<a href="/">Start from the map.</a></p>',
-                  path=path)
+                  path=path, code=404)
 
     def home(self):
         rows = [[

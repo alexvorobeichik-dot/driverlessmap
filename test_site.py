@@ -132,9 +132,11 @@ class SiteTests(unittest.TestCase):
                 self.assertIn('<title>', body)
                 self.assertIn(f'>{label}<', body, 'the nav should mark this page')
 
-    def test_unknown_path_returns_a_page_not_a_crash(self):
+    def test_unknown_path_returns_a_real_404(self):
+        # Returning 200 here would be a soft 404: crawlers would index junk URLs
+        # and spend crawl budget on them instead of on the pages that matter.
         status, _, body = self.get('/nonsense')
-        self.assertEqual(status, 200)
+        self.assertEqual(status, 404)
         self.assertIn('Not found', body)
 
     def test_healthz_is_disallowed_for_crawlers(self):
