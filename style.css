@@ -74,3 +74,34 @@ footer p{max-width:80ch}
   main{padding:32px 18px 56px}
   th,td{padding:9px 10px}
 }
+
+/* Visual furniture. No photographs anywhere on this site, deliberately: a
+   reference carrying operator imagery reads as a fan site, and that neutrality
+   is the thing it trades on. Colour and data carry the weight instead. */
+
+.eyebrow{font-size:11px;letter-spacing:2.4px;color:var(--accent);font-weight:700;margin-bottom:12px}
+
+.stats{display:flex;flex-wrap:wrap;gap:38px;margin:26px 0 0}
+.stats div{min-width:104px}
+.stats b{display:block;font-size:40px;line-height:1.05;letter-spacing:-1.8px;color:var(--text);font-weight:700}
+.stats span{font-size:12px;letter-spacing:.5px;color:var(--muted)}
+
+.chip{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;color:#0e100f;white-space:nowrap}
+
+.legend{display:inline-flex;flex-wrap:wrap;gap:18px;align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+
+.coverage{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin:16px 0 8px}
+.cov{border:1px solid var(--line);border-radius:9px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cov b{font-size:13px;color:var(--text);font-weight:600}
+.dots{display:inline-flex;gap:5px}
+
+.hero{padding:2px 0 30px}
+
+@media (max-width:640px){
+  .stats{gap:24px}
+  .stats b{font-size:32px}
+  .coverage{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+}

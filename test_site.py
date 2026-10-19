@@ -105,6 +105,29 @@ class SiteTests(unittest.TestCase):
         self.assertIn('Not driverless', body)
         self.assertIn('Announced, not yet carrying passengers', body)
 
+    def test_home_shows_the_coverage_visuals(self):
+        _, _, body = self.get('/')
+        self.assertIn('class="stats"', body)
+        self.assertIn('class="coverage"', body)
+        self.assertIn('class="chip"', body, 'operators should be colour coded')
+        # One card per state that actually has service, read from the same table
+        # the page renders, so the grid cannot disagree with the rows below it.
+        states = {c['region'] for c in server.CITIES}
+        self.assertEqual(body.count('class="cov"'), len(states))
+        for name in server.OPERATOR_COLOURS:
+            with self.subTest(operator=name):
+                self.assertIn(name, body, 'the legend should name every operator')
+        for name in server.STATE_NAMES:
+            with self.subTest(state=name):
+                self.assertIn(server.STATE_NAMES[name], body)
+
+    def test_every_operator_has_its_own_colour(self):
+        operators = {c['operator'] for c in server.CITIES}
+        self.assertTrue(operators.issubset(server.OPERATOR_COLOURS.keys()),
+                        'an operator without a colour would render grey')
+        colours = [server.OPERATOR_COLOURS[o] for o in operators]
+        self.assertEqual(len(colours), len(set(colours)), 'colours must be distinct')
+
     def test_operators_page_covers_all_four(self):
         status, _, body = self.get('/operators')
         self.assertEqual(status, 200)

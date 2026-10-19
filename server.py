@@ -16,6 +16,12 @@ ROOT = Path(__file__).parent
 SITE_NAME = 'Driverless Map'
 SITE_URL = os.environ.get('SITE_URL', 'https://driverlessmap.com').rstrip('/')
 OG_IMAGE = SITE_URL + '/static/og-card.png'
+
+# One colour per operator, used in the chips, the coverage grid and the legend, so
+# the same operator reads the same way everywhere on the site.
+OPERATOR_COLOURS = {'Waymo': '#6ee7a8', 'Zoox': '#6aa9ff', 'Tesla': '#e8a33d'}
+STATE_NAMES = {'AZ': 'Arizona', 'CA': 'California', 'CO': 'Colorado', 'FL': 'Florida',
+               'GA': 'Georgia', 'NV': 'Nevada', 'TN': 'Tennessee', 'TX': 'Texas'}
 DEFAULT_DESCRIPTION = ('Every city where driverless ride-hailing actually carries passengers, '
                        'who operates it, and a source for each claim.')
 
@@ -238,6 +244,45 @@ def ref_table(columns, rows):
     return ''.join(out)
 
 
+def operator_colour(name):
+    return OPERATOR_COLOURS.get(name, '#9aa79b')
+
+
+def chip(operator):
+    return ('<span class="chip" style="background:' + operator_colour(operator) + '">'
+            + esc(operator) + '</span>')
+
+
+def stat_strip(pairs):
+    return '<div class="stats">' + ''.join(
+        '<div><b>' + esc(value) + '</b><span>' + esc(label) + '</span></div>'
+        for value, label in pairs) + '</div>'
+
+
+def coverage_legend():
+    return ('<span class="legend">' + ''.join(
+        '<span><i class="dot" style="background:' + operator_colour(name) + '"></i>'
+        + esc(name) + '</span>' for name in OPERATOR_COLOURS) + '</span>')
+
+
+def coverage_grid():
+    # Which operators run in which state, read straight from the city table so it
+    # cannot drift from the figures below it.
+    by_state = {}
+    for city in CITIES:
+        by_state.setdefault(city['region'], set()).add(city['operator'])
+    out = ['<div class="coverage">']
+    for state in sorted(by_state, key=lambda s: STATE_NAMES.get(s, s)):
+        dots = ''.join(
+            '<i class="dot" style="background:' + operator_colour(name)
+            + '" title="' + esc(name) + '"></i>'
+            for name in OPERATOR_COLOURS if name in by_state[state])
+        out.append('<div class="cov"><b>' + esc(STATE_NAMES.get(state, state))
+                   + '</b><span class="dots">' + dots + '</span></div>')
+    out.append('</div>')
+    return ''.join(out)
+
+
 def bar_chart(series, label):
     top = max(v for _, v in series) or 1
     w, h = 640, 270
@@ -393,7 +438,7 @@ class Handler(BaseHTTPRequestHandler):
     def home(self):
         rows = [[
             '<b>' + esc(c['city']) + '</b><br>' + esc(c['region']),
-            esc(c['operator']),
+            chip(c['operator']),
             esc(c['since']),
             esc(c['open']),
             esc(c['note']) + f' <a href="{esc(c["source"])}">{esc(c["source_name"])}</a>',
@@ -402,13 +447,18 @@ class Handler(BaseHTTPRequestHandler):
         regions = sorted({c['region'] for c in CITIES})
         content = f'''
 <section class="hero">
-  <h1>Where driverless cars actually take passengers</h1>
-  <p class="lede">{len(CITIES)} city services run by {len(operators)} operators, across {len(regions)} states.
-  Every row below carries a source, and anything still running with a safety monitor is listed
-  separately rather than counted in.</p>
-  <p class="stamp">Last checked {esc(UPDATED)}</p>
+  <div class="eyebrow">EVERY CITY. EVERY OPERATOR.</div>
+  <h1>Where driverless cars<br>actually take passengers</h1>
+  {stat_strip([(len(CITIES), 'city services'), (len(operators), 'operators'), (len(regions), 'states')])}
+  <p class="stamp">Last checked {esc(UPDATED)}. Every row carries a source. Services still running
+  with a safety monitor are listed separately rather than counted in.</p>
 </section>
 
+<h2>Coverage by state</h2>
+<p class="meta">{coverage_legend()}</p>
+{coverage_grid()}
+
+<h2>Every city, and who runs it</h2>
 {ref_table(['City', 'Operator', 'Since', 'Access', 'Notes'], rows)}
 
 <h2>Not driverless, despite the coverage</h2>
