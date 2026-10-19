@@ -17,11 +17,9 @@ SITE_NAME = 'Driverless Map'
 SITE_URL = os.environ.get('SITE_URL', 'https://driverlessmap.com').rstrip('/')
 OG_IMAGE = SITE_URL + '/static/og-card.png'
 
-# One colour per operator, used in the chips, the coverage grid and the legend, so
-# the same operator reads the same way everywhere on the site.
+# One colour per operator, used in the chips, the legend and the map dots, so the
+# same operator reads the same way everywhere on the site.
 OPERATOR_COLOURS = {'Waymo': '#6ee7a8', 'Zoox': '#6aa9ff', 'Tesla': '#e8a33d'}
-STATE_NAMES = {'AZ': 'Arizona', 'CA': 'California', 'CO': 'Colorado', 'FL': 'Florida',
-               'GA': 'Georgia', 'NV': 'Nevada', 'TN': 'Tennessee', 'TX': 'Texas'}
 DEFAULT_DESCRIPTION = ('Every city where driverless ride-hailing actually carries passengers, '
                        'who operates it, and a source for each claim.')
 
@@ -392,24 +390,6 @@ def coverage_legend():
         + esc(name) + '</span>' for name in OPERATOR_COLOURS) + '</span>')
 
 
-def coverage_grid():
-    # Which operators run in which state, read straight from the city table so it
-    # cannot drift from the figures below it.
-    by_state = {}
-    for city in CITIES:
-        by_state.setdefault(city['region'], set()).add(city['operator'])
-    out = ['<div class="coverage">']
-    for state in sorted(by_state, key=lambda s: STATE_NAMES.get(s, s)):
-        dots = ''.join(
-            '<i class="dot" style="background:' + operator_colour(name)
-            + '" title="' + esc(name) + '"></i>'
-            for name in OPERATOR_COLOURS if name in by_state[state])
-        out.append('<div class="cov"><b>' + esc(STATE_NAMES.get(state, state))
-                   + '</b><span class="dots">' + dots + '</span></div>')
-    out.append('</div>')
-    return ''.join(out)
-
-
 def us_map():
     # Inline SVG drawn from the same tables the page renders: the highlighted
     # states come from the city list and the dots from the city coordinates, so
@@ -621,7 +601,6 @@ class Handler(BaseHTTPRequestHandler):
 <h2>Where it runs</h2>
 <p class="meta">{coverage_legend()}</p>
 {us_map()}
-{coverage_grid()}
 
 <h2>Every city, and who runs it</h2>
 {ref_table(['City', 'Operator', 'Since', 'Access', 'Notes'], rows)}

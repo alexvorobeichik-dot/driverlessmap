@@ -93,22 +93,16 @@ footer p{max-width:80ch}
 
 .dot{width:11px;height:11px;border-radius:50%;display:inline-block}
 
-.coverage{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin:16px 0 8px}
-.cov{border:1px solid var(--line);border-radius:9px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.cov b{font-size:13px;color:var(--text);font-weight:600}
-.dots{display:inline-flex;gap:5px}
-
 .hero{padding:2px 0 30px}
 
 @media (max-width:640px){
   .stats{gap:24px}
   .stats b{font-size:32px}
-  .coverage{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
 }
 /* The map. Outlines are Natural Earth geometry (public domain); the highlighted
    states and the dots are drawn from the same tables as the list below, so the
    two cannot disagree. Strokes are non-scaling so they stay crisp at any size. */
-.usmap{width:100%;height:auto;display:block;margin:22px 0 6px}
+.usmap{width:100%;max-width:620px;height:auto;display:block;margin:20px 0 6px}
 .usmap .st{fill:#161a18;stroke:#2c322c;stroke-width:1;vector-effect:non-scaling-stroke}
 .usmap .st.on{fill:#22322a;stroke:#3f6b52}
 .usmap .stlabel{fill:var(--accent);font-size:13px;font-weight:700;text-anchor:middle;dominant-baseline:middle;letter-spacing:.6px}
