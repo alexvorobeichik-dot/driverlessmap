@@ -8,6 +8,7 @@ asserted rather than trusted.
 Run with:  python -m unittest test_site.py -v
 """
 import datetime
+import hashlib
 import http.client
 import os
 import re
@@ -275,6 +276,23 @@ class SiteTests(unittest.TestCase):
             with self.subTest(point=label):
                 self.assertIn(label, body)
                 self.assertIn(f'>{value}<', body)
+
+    def test_the_stylesheet_url_carries_a_version(self):
+        # The stylesheet is cached for a day, so its URL has to change when its
+        # contents do. Without that, someone who visited before a deploy gets
+        # today's markup styled by yesterday's rules: broken for them, and
+        # invisible to whoever did the deploying.
+        _, _, body = self.get('/')
+        match = re.search(r'<link rel="stylesheet" href="(/style\.css\?v=[0-9a-f]+)">', body)
+        self.assertIsNotNone(match, 'the stylesheet link carries no version')
+        status, headers, css = self.get(match.group(1))
+        self.assertEqual(status, 200)
+        self.assertIn('text/css', headers['content-type'])
+        self.assertIn('.table-wrap', css)
+
+    def test_the_version_is_the_stylesheet_contents(self):
+        digest = hashlib.sha256((server.ROOT / 'style.css').read_bytes()).hexdigest()[:10]
+        self.assertEqual(server.stylesheet_url(), f'/style.css?v={digest}')
 
     def test_stylesheet_is_served(self):
         status, headers, body = self.get('/style.css')

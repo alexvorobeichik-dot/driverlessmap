@@ -7,7 +7,7 @@ mutable state: deploys are zero-downtime and there is no single-instance ceiling
 
 Run it:  python server.py     then open http://127.0.0.1:8090
 """
-import os, html, time, datetime
+import os, html, time, datetime, hashlib
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from pathlib import Path
@@ -15,7 +15,8 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 SITE_NAME = 'Driverless Map'
 SITE_URL = os.environ.get('SITE_URL', 'https://driverlessmap.com').rstrip('/')
-OG_IMAGE = SITE_URL + '/static/og-card.png'
+OG_CARD = '/static/og-card.png'
+OG_IMAGE = SITE_URL + OG_CARD
 
 # One colour per operator, used in the chips, the legend and the map dots, so the
 # same operator reads the same way everywhere on the site.
@@ -374,6 +375,19 @@ def esc(value):
     return html.escape(str(value), quote=True)
 
 
+def versioned(path):
+    # A long cache on an asset is only safe if its URL changes when its contents
+    # do. Without that, a returning visitor gets new markup styled by the rules
+    # they cached yesterday, which is invisible to whoever deployed it and
+    # obvious to everyone else. The digest is the version.
+    digest = hashlib.sha256((ROOT / path.lstrip('/')).read_bytes()).hexdigest()[:10]
+    return f'{path}?v={digest}'
+
+
+def stylesheet_url():
+    return versioned('/style.css')
+
+
 def rfc822(stamp):
     days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -567,7 +581,7 @@ class Handler(BaseHTTPRequestHandler):
 <meta property="og:image" content="{esc(OG_IMAGE)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="{esc(OG_IMAGE)}">
-<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="{esc(stylesheet_url())}">
 </head>
 <body>
 <header>
@@ -598,6 +612,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(200, 'ok', content_type='text/plain; charset=utf-8')
 
         if path == '/style.css':
+            # Safe to cache for a day only because every page links to it with
+            # the digest of its contents as a version.
             return self.send(200, (ROOT / 'style.css').read_text('utf-8'),
                              content_type='text/css; charset=utf-8', cache='public, max-age=86400')
 
@@ -618,10 +634,10 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(200, body, content_type='application/xml; charset=utf-8',
                              cache='public, max-age=600')
 
-        if path == '/static/og-card.png':
+        if path == OG_CARD:
             # Branded card, drawn from this site's own palette. Not a photograph,
             # so nothing here needs an attribution a link preview would drop.
-            return self.send_raw(200, (ROOT / 'static' / 'og-card.png').read_bytes(),
+            return self.send_raw(200, (ROOT / OG_CARD.lstrip('/')).read_bytes(),
                                  'image/png', cache='public, max-age=86400')
 
         if path in ('', '/'):
