@@ -15,6 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 SITE_NAME = 'Driverless Map'
 SITE_URL = os.environ.get('SITE_URL', 'https://driverlessmap.com').rstrip('/')
+OG_IMAGE = SITE_URL + '/static/og-card.png'
 DEFAULT_DESCRIPTION = ('Every city where driverless ride-hailing actually carries passengers, '
                        'who operates it, and a source for each claim.')
 
@@ -269,8 +270,8 @@ class Handler(BaseHTTPRequestHandler):
     timeout = 30
     server_version = 'driverlessmap'
 
-    def send(self, code, body, content_type='text/html; charset=utf-8', cache=None):
-        raw = body.encode('utf-8')
+    def send_raw(self, code, raw, content_type, cache=None):
+        # One place that writes, so HEAD is handled once rather than per route.
         self.send_response(code)
         self.send_header('Content-Type', content_type)
         self.send_header('X-Content-Type-Options', 'nosniff')
@@ -286,6 +287,9 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(raw)
         except BrokenPipeError:
             pass
+
+    def send(self, code, body, content_type='text/html; charset=utf-8', cache=None):
+        self.send_raw(code, body.encode('utf-8'), content_type, cache)
 
     def page(self, title, content, description=None, path='/', cache=None):
         full_title = f'{title} · {SITE_NAME}' if title else SITE_NAME
@@ -307,7 +311,9 @@ class Handler(BaseHTTPRequestHandler):
 <meta property="og:title" content="{esc(full_title)}">
 <meta property="og:description" content="{esc(desc)}">
 <meta property="og:url" content="{esc(canonical)}">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="{esc(OG_IMAGE)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{esc(OG_IMAGE)}">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -358,6 +364,12 @@ class Handler(BaseHTTPRequestHandler):
                     + entries + '</urlset>')
             return self.send(200, body, content_type='application/xml; charset=utf-8',
                              cache='public, max-age=600')
+
+        if path == '/static/og-card.png':
+            # Branded card, drawn from this site's own palette. Not a photograph,
+            # so nothing here needs an attribution a link preview would drop.
+            return self.send_raw(200, (ROOT / 'static' / 'og-card.png').read_bytes(),
+                                 'image/png', cache='public, max-age=86400')
 
         if path in ('', '/'):
             return self.home()

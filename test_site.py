@@ -168,6 +168,28 @@ class SiteTests(unittest.TestCase):
         self.assertIn('text/css', headers['content-type'])
         self.assertIn('.table-wrap', body)
 
+    def test_share_card_is_actually_served(self):
+        # The Open Graph tags point at this file, so a missing or renamed asset
+        # would leave every shared link with a broken preview.
+        conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=20)
+        try:
+            conn.request('GET', '/static/og-card.png')
+            resp = conn.getresponse()
+            payload = resp.read()
+            status = resp.status
+            content_type = resp.getheader('Content-Type')
+        finally:
+            conn.close()
+        self.assertEqual(status, 200)
+        self.assertEqual(content_type, 'image/png')
+        self.assertTrue(payload.startswith(b'\x89PNG\r\n'), 'not a PNG')
+        self.assertGreater(len(payload), 10000, 'suspiciously small share card')
+
+    def test_pages_advertise_the_share_card(self):
+        _, _, body = self.get('/')
+        self.assertIn(f'<meta property="og:image" content="{server.OG_IMAGE}">', body)
+        self.assertIn('summary_large_image', body)
+
     def test_row_content_is_html_escaped(self):
         # Source names and notes are authored, but the escaping path still has to
         # hold: it is the only thing between a stray bracket and broken markup.
