@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 .env
 .env.*
+
+# Local test-run artefacts (stdout/stderr redirect files).
+o.txt
+e.txt
+*.log
