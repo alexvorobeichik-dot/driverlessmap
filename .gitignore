@@ -7,3 +7,6 @@ __pycache__/
 o.txt
 e.txt
 *.log
+
+# The map tool caches the Natural Earth file it works from.
+tools/.cache/

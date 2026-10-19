@@ -7,8 +7,10 @@ asserted rather than trusted.
 
 Run with:  python -m unittest test_site.py -v
 """
+import datetime
 import http.client
 import os
+import re
 import sys
 import threading
 import unittest
@@ -87,6 +89,34 @@ class SiteTests(unittest.TestCase):
             with self.subTest(city=row['city'], operator=row['operator']):
                 self.assertTrue(row['since'].strip(), 'a city needs a start date')
 
+    def test_every_city_carries_coordinates_to_place_it(self):
+        # The map places each dot by projecting these, so a missing or mistyped
+        # pair is a wrong map rather than a wrong page.
+        for row in server.CITIES:
+            with self.subTest(city=row['city']):
+                self.assertIn('at', row, 'a city needs coordinates for the map')
+                lat, lon = row['at']
+                self.assertTrue(24.0 <= lat <= 50.0, f'{lat} is outside the lower 48')
+                self.assertTrue(-125.0 <= lon <= -66.0, f'{lon} is outside the lower 48')
+
+    def test_a_city_listed_twice_stands_in_one_place(self):
+        # Las Vegas and the Bay Area each run two services. Two rows, one dot.
+        placed = {}
+        for row in server.CITIES:
+            with self.subTest(city=row['city']):
+                if row['city'] in placed:
+                    self.assertEqual(placed[row['city']], row['at'],
+                                     'the same city cannot be in two places')
+                placed[row['city']] = row['at']
+
+    def test_the_checked_date_is_not_in_the_future(self):
+        # 'Last checked' is a claim about the past, rendered on every page. A
+        # date ahead of today makes the whole site look unmaintained, which is
+        # the one impression a reference cannot afford.
+        checked = datetime.date.fromisoformat(server.DATESTAMP)
+        self.assertLessEqual(checked, datetime.date.today(),
+                             'the site claims to have been checked in the future')
+
     # ------------------------------------------------------------------
     # pages
     # ------------------------------------------------------------------
@@ -112,6 +142,35 @@ class SiteTests(unittest.TestCase):
         for name in server.OPERATOR_COLOURS:
             with self.subTest(operator=name):
                 self.assertIn(name, body, 'the legend should name every operator')
+
+    def test_home_groups_the_cities_under_operator_headings(self):
+        # The listing is grouped by operator, so a city filed under the wrong
+        # heading would be a factual error wearing a layout costume.
+        _, _, body = self.get('/')
+        by_operator = {}
+        for city in server.CITIES:
+            by_operator.setdefault(city['operator'], set()).add(city['city'])
+        blocks = body.split('<h3 class="ophead"')[1:]
+        self.assertEqual(len(blocks), len(by_operator), 'one listing per operator')
+        for block in blocks:
+            head, _, listing = block.partition('</h3>')
+            named = [name for name in by_operator if f'>{name}</span>' in head + '</h3>']
+            self.assertEqual(len(named), 1, f'each listing names one operator: {head!r}')
+            for city in by_operator[named[0]]:
+                self.assertIn(city, listing, f'{city} is missing from its operator listing')
+
+    def test_every_class_used_in_the_markup_has_a_rule(self):
+        # A layout pass once shipped CSS ahead of the markup. This is the same
+        # failure seen from the other side: a class in a page that no rule
+        # defines renders as nothing at all, which is the hardest kind of
+        # mistake to notice on a page nobody looks at twice.
+        css = (server.ROOT / 'style.css').read_text('utf-8')
+        for path, _, _ in server.PAGES:
+            _, _, body = self.get(path)
+            for attribute in re.findall(r'class="([^"]+)"', body):
+                for name in attribute.split():
+                    with self.subTest(path=path, cls=name):
+                        self.assertIn('.' + name, css, f'{name} is used but never styled')
 
     def test_every_operator_has_its_own_colour(self):
         operators = {c['operator'] for c in server.CITIES}

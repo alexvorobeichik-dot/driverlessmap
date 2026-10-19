@@ -35,16 +35,55 @@ nav a:hover{color:var(--accent);text-decoration:none}
 nav a.on{color:var(--text);font-weight:600}
 
 /* type -------------------------------------------------------------------- */
-main{padding:44px 28px 72px}
+main{padding:40px 28px 72px}
 h1{font-size:clamp(28px,4.2vw,44px);line-height:1.12;letter-spacing:-1.2px;margin:0 0 16px}
-h2{font-size:21px;letter-spacing:-.4px;margin:44px 0 12px}
+h2{font-size:22px;letter-spacing:-.5px;margin:38px 0 14px}
+/* h3 only appears as the head of an operator listing, where the chip and the
+   count carry the weight, so it is deliberately quiet here. */
+h3{font-size:15px;letter-spacing:0;margin:0}
 p{color:var(--muted);max-width:72ch}
 p b,li b{color:var(--text)}
 .lede{font-size:18px;color:var(--text);max-width:64ch}
 .stamp{font-size:13px;color:var(--muted);margin-top:18px}
 .meta{font-size:13px;color:var(--muted)}
-.hero{padding:8px 0 28px;border-bottom:1px solid var(--line);margin-bottom:28px}
 em{font-style:normal;color:var(--accent)}
+
+/* hero -------------------------------------------------------------------- */
+/* The map sits beside the headline rather than under it: the answer to "where"
+   is the reason to be here, so it belongs above the fold, not below a scroll. */
+.hero{
+  display:grid;grid-template-columns:1fr auto;gap:46px;align-items:center;
+  padding:12px 0 34px;border-bottom:1px solid var(--line);margin-bottom:34px;
+}
+.herocopy h1{font-size:clamp(29px,3.4vw,41px);margin-bottom:0}
+.eyebrow{font-size:11px;letter-spacing:2.4px;color:var(--accent);font-weight:700;margin-bottom:12px}
+
+.stats{display:flex;flex-wrap:wrap;gap:38px;margin:26px 0 0}
+.stats div{min-width:104px}
+.stats b{display:block;font-size:40px;line-height:1.05;letter-spacing:-1.8px;color:var(--text);font-weight:700}
+.stats span{font-size:12px;letter-spacing:.5px;color:var(--muted)}
+
+.heromap{width:480px;max-width:100%}
+.heromap .meta{margin:0 0 4px}
+
+/* cards ------------------------------------------------------------------- */
+.card{
+  border:1px solid var(--line);border-radius:14px;background:#121513;
+  padding:24px 26px;margin:0 0 20px;
+}
+.card h2{margin-top:0}
+.card p:last-child,.card .table-wrap:last-child{margin-bottom:0}
+/* A card whose last element is a table needs less room beneath it, and one whose
+   first element is a table needs none above. Written as .card.listing so the
+   narrow-screen .card padding does not quietly undo it. */
+.card.listing{padding:22px 26px 14px}
+.card .table-wrap{margin:16px 0 0}
+.card .table-wrap:first-child{margin-top:0}
+
+/* The head of a per-operator listing. Reuses the table chip, so the same
+   operator reads the same way everywhere on the site. */
+.ophead{display:flex;align-items:center;gap:12px;margin:0 0 4px}
+.ophead span{font-size:12px;color:var(--muted);letter-spacing:.4px}
 
 /* tables ------------------------------------------------------------------ */
 /* Wrapped so a wide table scrolls on a phone instead of breaking the layout. */
@@ -60,32 +99,10 @@ td b{color:var(--text);font-weight:600}
 tr:last-child td{border-bottom:0}
 td a{font-size:12px;white-space:nowrap}
 
-/* chart ------------------------------------------------------------------- */
-.chart{width:100%;height:auto;display:block;margin:24px 0}
-
-/* footer ------------------------------------------------------------------ */
-footer{border-top:1px solid var(--line);padding:32px 28px 56px;font-size:14px}
-footer p{max-width:80ch}
-
-@media (max-width:640px){
-  .shell{padding:0 18px}
-  .bar{flex-direction:column;align-items:flex-start;gap:14px;padding:18px}
-  nav{flex-wrap:wrap;gap:14px}
-  main{padding:32px 18px 56px}
-  th,td{padding:9px 10px}
-}
-
-/* Visual furniture. No photographs anywhere on this site, deliberately: a
-   reference carrying operator imagery reads as a fan site, and that neutrality
-   is the thing it trades on. Colour and data carry the weight instead. */
-
-.eyebrow{font-size:11px;letter-spacing:2.4px;color:var(--accent);font-weight:700;margin-bottom:12px}
-
-.stats{display:flex;flex-wrap:wrap;gap:38px;margin:26px 0 0}
-.stats div{min-width:104px}
-.stats b{display:block;font-size:40px;line-height:1.05;letter-spacing:-1.8px;color:var(--text);font-weight:700}
-.stats span{font-size:12px;letter-spacing:.5px;color:var(--muted)}
-
+/* chips and legend -------------------------------------------------------- */
+/* Colour is the only decoration on this site. No photographs anywhere, on
+   purpose: a reference carrying operator imagery reads as a fan site, and
+   neutrality is the thing it trades on. */
 .chip{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;color:#0e100f;white-space:nowrap}
 
 .legend{display:inline-flex;flex-wrap:wrap;gap:18px;align-items:center}
@@ -93,23 +110,49 @@ footer p{max-width:80ch}
 
 .dot{width:11px;height:11px;border-radius:50%;display:inline-block}
 
-.hero{padding:2px 0 30px}
+/* chart ------------------------------------------------------------------- */
+.chart{width:100%;height:auto;display:block;margin:24px 0}
 
-@media (max-width:640px){
-  .stats{gap:24px}
-  .stats b{font-size:32px}
-}
-/* The map. Outlines are Natural Earth geometry (public domain); the highlighted
-   states and the dots are drawn from the same tables as the list below, so the
-   two cannot disagree. Strokes are non-scaling so they stay crisp at any size. */
+/* the map ----------------------------------------------------------------- */
+/* Outlines are Natural Earth geometry (public domain); the highlighted states
+   and the dots are drawn from the same tables as the listings, so the two
+   cannot disagree. Strokes are non-scaling so they stay crisp at any size. */
 .usmap{width:100%;max-width:620px;height:auto;display:block;margin:20px 0 6px}
 .usmap .st{fill:#161a18;stroke:#2c322c;stroke-width:1;vector-effect:non-scaling-stroke}
 .usmap .st.on{fill:#22322a;stroke:#3f6b52}
 .usmap .stlabel{fill:var(--accent);font-size:13px;font-weight:700;text-anchor:middle;dominant-baseline:middle;letter-spacing:.6px}
 .usmap circle{stroke:#0e100f;stroke-width:1.5}
 
+/* footer ------------------------------------------------------------------ */
+footer{border-top:1px solid var(--line);padding:32px 28px 56px;font-size:14px}
+footer p{max-width:80ch}
+
+/* Narrow screens. Wider breakpoint first, so the tighter one wins where both
+   match. */
+@media (max-width:960px){
+  .hero{grid-template-columns:1fr;gap:28px}
+  .heromap{width:100%}
+  .card{padding:20px}
+  main{padding:32px 22px 56px}
+}
+
 @media (max-width:700px){
-  /* The viewBox scales the type down with the map, leaving state labels
-     illegible. The list underneath carries the same information. */
+  h1{font-size:clamp(26px,7vw,34px)}
+  /* The viewBox scales the type down with the map, leaving the state labels
+     illegible. The listings underneath carry the same information. */
   .usmap .stlabel{display:none}
+}
+
+@media (max-width:640px){
+  .shell{padding:0 18px}
+  .bar{flex-direction:column;align-items:flex-start;gap:14px;padding:18px}
+  nav{flex-wrap:wrap;gap:14px}
+  main{padding:30px 18px 56px}
+  th,td{padding:9px 10px}
+  /* Three figures at 104px a piece do not fit in 354px, so the strip broke
+     2-and-1 on a phone. The figures are short here, so let them size to their
+     content and stay on one line. */
+  .stats{gap:26px;flex-wrap:nowrap}
+  .stats div{min-width:0}
+  .stats b{font-size:32px}
 }
