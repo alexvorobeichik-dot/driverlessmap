@@ -198,9 +198,9 @@ OPERATORS = [
      'note': 'Holds the first Part 555 commercial exemption NHTSA has granted for a purpose-built robotaxi, which is the regulatory event worth watching here.',
      'source_name': 'Zoox', 'source': 'https://zoox.com/journal/zoox-nhtsa-part-555-commercial-exemption'},
     {'name': 'Tesla', 'owner': 'Tesla', 'vehicle': 'Cybercab in Austin; modified Model Y elsewhere',
-     'cities': '6 markets, Cybercab in 1', 'vehicles': '739 registered in Texas, of which 319 are Cybercabs',
-     'note': 'The only operator using two different vehicle types under one brand. Only Austin has the Cybercab, which is a distinction most coverage blurs.',
-     'source_name': 'Texas AV Tracker', 'source': 'https://texasavtracker.com/tesla'},
+     'cities': '6 markets, Cybercab in 1', 'vehicles': '1,204 registered in Texas, of which 573 are Cybercabs',
+     'note': 'The only operator using two different vehicle types under one brand. Only Austin carries passengers in the Cybercab, which is a distinction most coverage blurs.',
+     'source_name': 'Drive Tesla, Texas DMV', 'source': 'https://driveteslacanada.ca/news/tesla-robotaxi-fleet-surges-to-1204-vehicles-in-texas-closing-in-on-waymo'},
     {'name': 'Uber', 'owner': 'Uber', 'vehicle': 'None of its own',
      'cities': 'Austin and Atlanta via Waymo', 'vehicles': 'n/a',
      'note': 'Runs no vehicles. Its strategy is to be the booking layer for other people\'s fleets, which makes it a partner and a competitor at once.',
@@ -237,6 +237,7 @@ FLEET_SERIES = [
     ('3 Sep 2026', 45),
     ('2 Oct 2026', 169),
     ('12 Oct 2026', 319),
+    ('1 Nov 2026', 573),
 ]
 
 # ---------------------------------------------------------------------------
@@ -742,8 +743,11 @@ because that is the comparison coverage written per company does not make.</p>
 
 <section class="card">
   <h2>Cybercabs registered in Texas</h2>
-  {bar_chart(FLEET_SERIES, 'Cybercabs registered for commercial use in Texas, rising from 45 to 319 in six weeks')}
+  {bar_chart(FLEET_SERIES, 'Cybercabs registered for commercial use in Texas, rising from 45 to 573 in eight weeks')}
   <p class="meta">Texas DMV registrations, the only independently checkable fleet count in the United States.</p>
+  <p>Waymo's Texas roster stands at 1,259, so Tesla is within about 55 vehicles of the operator it is
+  chasing. Both are registry counts, not cars on the road: a registered vehicle is not necessarily one
+  in service.</p>
 </section>
 
 <section class="card">
