@@ -291,6 +291,16 @@ class SiteTests(unittest.TestCase):
         for path, _, _ in server.PAGES:
             self.assertIn(server.SITE_URL + path, locations)
 
+    def test_operator_name_chip_keeps_its_own_text_colour(self):
+        # `.ophead span` used to reach the chip itself and repaint its text muted
+        # grey on top of the operator colour, which is the one place the name has
+        # to stay legible. The count carries its own class so it cannot recur.
+        _, _, body = self.get('/')
+        self.assertIn('class="oplabel"', body, 'the count needs its own class')
+        _, _, css = self.get('/style.css')
+        self.assertNotIn('.ophead span{', css,
+                         'a descendant selector here repaints the chip text again')
+
     def test_chart_plots_both_operators_over_time(self):
         # The chart is the only place the two fleets are compared, so both lines
         # and every point on them have to reach the page.

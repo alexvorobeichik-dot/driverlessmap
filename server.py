@@ -490,7 +490,8 @@ def city_listing(operator, cities):
     ] for c in cities]
     heading = 'op-' + anchor(operator)
     return (f'<section class="card listing" aria-labelledby="{heading}">'
-            f'<h3 class="ophead" id="{heading}">{chip(operator)}<span>{esc(label)}</span></h3>'
+            f'<h3 class="ophead" id="{heading}">{chip(operator)}'
+            f'<span class="oplabel">{esc(label)}</span></h3>'
             + ref_table(['City', 'Since', 'Access', 'Notes'], rows)
             + '</section>')
 
@@ -589,7 +590,7 @@ def race_chart(series, label):
                        'stroke="#0e100f" stroke-width="1.5">'
                        f'<title>{esc(name)}: {v} on {esc(d)}</title></circle>')
         out.append(f'<circle cx="{legend_x + 5}" cy="16" r="5" fill="{colour}"/>')
-        out.append(f'<text x="{legend_x + 16}" y="21" fill="#c9d1c6" font-size="14" '
+        out.append(f'<text x="{legend_x + 16}" y="21" fill="#e9ede3" font-size="14" '
                    f'font-weight="600">{esc(name)} {pts[-1][1]}</text>')
         legend_x += 152
 

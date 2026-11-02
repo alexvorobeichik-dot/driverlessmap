@@ -83,7 +83,10 @@ em{font-style:normal;color:var(--accent)}
 /* The head of a per-operator listing. Reuses the table chip, so the same
    operator reads the same way everywhere on the site. */
 .ophead{display:flex;align-items:center;gap:12px;margin:0 0 4px}
-.ophead span{font-size:12px;color:var(--muted);letter-spacing:.4px}
+/* Only the count after the chip. Writing this as `.ophead span` gave it the
+   specificity to repaint the chip's own text muted grey on top of a bright
+   fill, which is the one place the name has to stay legible. */
+.ophead .oplabel{font-size:12px;color:var(--muted);letter-spacing:.4px}
 
 /* tables ------------------------------------------------------------------ */
 /* Wrapped so a wide table scrolls on a phone instead of breaking the layout. */
@@ -103,10 +106,12 @@ td a{font-size:12px;white-space:nowrap}
 /* Colour is the only decoration on this site. No photographs anywhere, on
    purpose: a reference carrying operator imagery reads as a fan site, and
    neutrality is the thing it trades on. */
-.chip{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;color:#0e100f;white-space:nowrap}
+.chip{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;color:#0e100f;letter-spacing:.2px;white-space:nowrap}
 
 .legend{display:inline-flex;flex-wrap:wrap;gap:18px;align-items:center}
-.legend span{display:inline-flex;align-items:center;gap:7px}
+/* The name sits beside a saturated dot, so it needs to be brighter than body
+   muted text to survive the contrast next to it. */
+.legend span{display:inline-flex;align-items:center;gap:7px;color:#e9ede3}
 
 .dot{width:11px;height:11px;border-radius:50%;display:inline-block}
 
