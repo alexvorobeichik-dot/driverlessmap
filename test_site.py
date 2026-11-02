@@ -189,7 +189,11 @@ class SiteTests(unittest.TestCase):
         states = {c['region'] for c in server.CITIES}
         self.assertEqual(body.count('class="st on"'), len(states),
                          'the states with service should be highlighted')
-        self.assertEqual(body.count('<circle'), len(server.CITIES),
+        # Scoped to the map: the race chart below draws circles of its own, and
+        # counting them here would make this pass or fail on chart changes.
+        map_svg = body[body.index('class="usmap"'):]
+        map_svg = map_svg[:map_svg.index('</svg>')]
+        self.assertEqual(map_svg.count('<circle'), len(server.CITIES),
                          'one dot per city service')
 
     def test_every_city_has_map_coordinates(self):
@@ -287,14 +291,18 @@ class SiteTests(unittest.TestCase):
         for path, _, _ in server.PAGES:
             self.assertIn(server.SITE_URL + path, locations)
 
-    def test_chart_renders_from_the_fleet_series(self):
+    def test_chart_plots_both_operators_over_time(self):
+        # The chart is the only place the two fleets are compared, so both lines
+        # and every point on them have to reach the page.
         _, _, body = self.get('/')
         self.assertIn('class="chart"', body)
         self.assertIn('role="img"', body)
-        for label, value in server.FLEET_SERIES:
-            with self.subTest(point=label):
-                self.assertIn(label, body)
-                self.assertIn(f'>{value}<', body)
+        for name, _, points in server.FLEET_RACE:
+            with self.subTest(operator=name):
+                self.assertIn(f'{name} {points[-1][1]}', body, 'legend carries the latest figure')
+                for when, value in points:
+                    self.assertIn(when, body, 'the date axis is real, not positional')
+                    self.assertIn(f'{name}: {value} on {when}', body, 'each point is labelled')
 
     def test_the_stylesheet_url_carries_a_version(self):
         # The stylesheet is cached for a day, so its URL has to change when its

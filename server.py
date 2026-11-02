@@ -233,11 +233,12 @@ REGULATIONS = [
      'source_name': 'Tesla Q2 2026 filing', 'source': 'https://assets-ir.tesla.com/tesla-contents/IR/TSLA-Q2-2026-Update.pdf'},
 ]
 
-FLEET_SERIES = [
-    ('3 Sep 2026', 45),
-    ('2 Oct 2026', 169),
-    ('12 Oct 2026', 319),
-    ('1 Nov 2026', 573),
+# Two operators on one time axis. Each series starts where its first published
+# figure does, which is why they do not share a first point: Waymo's Texas
+# roster was first reported on 24 September, Tesla's split on 12 October.
+FLEET_RACE = [
+    ('Waymo', OPERATOR_COLOURS['Waymo'], [('24 Sep 2026', 1102), ('1 Nov 2026', 1259)]),
+    ('Tesla', OPERATOR_COLOURS['Tesla'], [('12 Oct 2026', 739), ('1 Nov 2026', 1204)]),
 ]
 
 # ---------------------------------------------------------------------------
@@ -545,22 +546,59 @@ def us_map():
     return ''.join(out)
 
 
-def bar_chart(series, label):
-    top = max(v for _, v in series) or 1
+def _day(text):
+    return datetime.datetime.strptime(text, '%d %b %Y').date()
+
+
+def race_chart(series, label):
+    # Two operators against a shared time axis, because the story is the gap
+    # closing rather than either total on its own. Dates are real, so a line that
+    # starts later starts further right instead of being padded back to the
+    # first label.
     w, h = 640, 270
-    pad, base = 54, 212
-    span = w - 2 * pad
-    slot = span // len(series)
-    bw = min(118, slot - 30)
+    left, right, top_pad, base = 56, 92, 40, 212
+    points = [(d, v) for _, _, pts in series for d, v in pts]
+    first = min(_day(d) for d, _ in points)
+    last = max(_day(d) for d, _ in points)
+    ceiling = max(v for _, v in points) * 1.12
+    span_days = max((last - first).days, 1)
+
+    def x_of(d):
+        return left + (w - left - right) * ((_day(d) - first).days / span_days)
+
+    def y_of(v):
+        return base - (base - top_pad) * (v / ceiling)
+
     out = [f'<svg viewBox="0 0 {w} {h}" role="img" aria-label="{esc(label)}" class="chart">']
-    for i, (caption, value) in enumerate(series):
-        x = pad + i * slot + (slot - bw) // 2
-        bh = round((base - 24) * (value / top))
-        y = base - bh
-        out.append(f'<rect x="{x}" y="{y}" width="{bw}" height="{bh}" rx="4" fill="var(--accent)"/>')
-        out.append(f'<text x="{x + bw // 2}" y="{y - 12}" text-anchor="middle" fill="#f2f4ed" font-size="23" font-weight="600">{value}</text>')
-        out.append(f'<text x="{x + bw // 2}" y="{base + 28}" text-anchor="middle" fill="#a3ada1" font-size="15">{esc(caption)}</text>')
-    out.append(f'<line x1="{pad - 14}" y1="{base}" x2="{w - pad + 14}" y2="{base}" stroke="#30362f" stroke-width="1"/>')
+    for value in (0, 500, 1000):
+        if value > ceiling:
+            continue
+        y = y_of(value)
+        out.append(f'<line x1="{left - 10}" y1="{y:.0f}" x2="{w - right + 10}" y2="{y:.0f}" '
+                   'stroke="#252b26" stroke-width="1"/>')
+        out.append(f'<text x="{left - 16}" y="{y + 5:.0f}" text-anchor="end" fill="#7f8a7e" '
+                   f'font-size="13">{value}</text>')
+
+    legend_x = left - 10
+    for name, colour, pts in series:
+        coords = ' '.join(f'{x_of(d):.1f},{y_of(v):.1f}' for d, v in pts)
+        out.append(f'<polyline points="{coords}" fill="none" stroke="{colour}" '
+                   'stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>')
+        for d, v in pts:
+            out.append(f'<circle cx="{x_of(d):.1f}" cy="{y_of(v):.1f}" r="5" fill="{colour}" '
+                       'stroke="#0e100f" stroke-width="1.5">'
+                       f'<title>{esc(name)}: {v} on {esc(d)}</title></circle>')
+        out.append(f'<circle cx="{legend_x + 5}" cy="16" r="5" fill="{colour}"/>')
+        out.append(f'<text x="{legend_x + 16}" y="21" fill="#c9d1c6" font-size="14" '
+                   f'font-weight="600">{esc(name)} {pts[-1][1]}</text>')
+        legend_x += 152
+
+    out.append(f'<line x1="{left - 10}" y1="{base}" x2="{w - right + 10}" y2="{base}" '
+               'stroke="#30362f" stroke-width="1"/>')
+    ticks = sorted({d for _, _, pts in series for d, _ in pts}, key=_day)
+    for d in ticks:
+        out.append(f'<text x="{x_of(d):.0f}" y="{base + 26}" text-anchor="middle" '
+                   f'fill="#a3ada1" font-size="14">{esc(d)}</text>')
     out.append('</svg>')
     return ''.join(out)
 
@@ -742,12 +780,13 @@ because that is the comparison coverage written per company does not make.</p>
 </section>
 
 <section class="card">
-  <h2>Cybercabs registered in Texas</h2>
-  {bar_chart(FLEET_SERIES, 'Cybercabs registered for commercial use in Texas, rising from 45 to 573 in eight weeks')}
-  <p class="meta">Texas DMV registrations, the only independently checkable fleet count in the United States.</p>
-  <p>Waymo's Texas roster stands at 1,259, so Tesla is within about 55 vehicles of the operator it is
-  chasing. Both are registry counts, not cars on the road: a registered vehicle is not necessarily one
-  in service.</p>
+  <h2>Robotaxis registered in Texas</h2>
+  {race_chart(FLEET_RACE, 'Robotaxis registered for commercial use in Texas by Tesla and Waymo, from 1,102 and 739 to 1,259 and 1,204')}
+  <p class="meta">Texas DMV registrations, the only independently checkable fleet count in the United States.
+  Each line begins at the first published figure, so the two start on different dates.</p>
+  <p>Waymo has led in Texas all year and Tesla is now within about 55 vehicles of it. Most of that growth
+  is the Cybercab: 45 at launch on 3 September, 573 on 1 November. Both lines are registry counts, not
+  cars on the road, and a registered vehicle is not necessarily one in service.</p>
 </section>
 
 <section class="card">
