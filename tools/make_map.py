@@ -70,6 +70,11 @@ CONUS = sorted("AL AR AZ CA CO CT DE FL GA IA ID IL IN KS KY LA MA MD ME MI MN "
                "MO MS MT NC ND NE NH NJ NM NV NY OH OK OR PA RI SC SD TN TX UT "
                "VA VT WA WI WV WY".split())
 
+# The ten provinces, not the three territories. The territories reach past 80
+# north: drawing them would triple the height of the map to show land where no
+# car is going, and push the cities into a strip at the bottom.
+PROVINCES = sorted("AB BC MB NB NL NS ON PE QC SK".split())
+
 LON_RANGE = (-125.0, -66.0)   # sanity bounds for a city coordinate
 LAT_RANGE = (24.0, 50.0)
 
@@ -174,28 +179,35 @@ def load_rings(raw, where):
         print('intention really is to move every state line.')
         raise SystemExit(2)
     features = json.loads(raw.decode('utf-8'))['features']
-    rings = {}
+    states, provinces = {}, {}
     for feature in features:
         props = feature['properties']
         code = props.get('postal')
-        if props.get('adm0_a3') != 'USA' or code not in CONUS:
+        country = props.get('adm0_a3')
+        if country == 'USA' and code in CONUS:
+            target = states
+        elif country == 'CAN' and code in PROVINCES:
+            target = provinces
+        else:
             continue
         geometry = feature['geometry']
         polygons = (geometry['coordinates'] if geometry['type'] == 'MultiPolygon'
                     else [geometry['coordinates']])
-        rings[code] = [[tuple(coordinates) for coordinates in polygon[0]]
-                       for polygon in polygons]
-    if sorted(rings) != CONUS:
-        missing = sorted(set(CONUS) - set(rings))
-        print(f'the source is missing {missing}; not writing a partial map')
-        raise SystemExit(2)
-    return rings
+        target[code] = [[tuple(coordinates) for coordinates in polygon[0]]
+                        for polygon in polygons]
+    for found, wanted, what in ((states, CONUS, 'states'),
+                                (provinces, PROVINCES, 'provinces')):
+        if sorted(found) != wanted:
+            missing = sorted(set(wanted) - set(found))
+            print(f'the source is missing {missing} {what}; not writing a partial map')
+            raise SystemExit(2)
+    return states, provinces
 
 
-def build_states(rings):
+def build_shapes(rings, codes):
     """Projected, simplified, island-filtered outlines and their labels."""
     paths, labels = {}, {}
-    for code in CONUS:
+    for code in codes:
         placed_rings = [[placed(lat, lon) for lon, lat in ring] for ring in rings[code]]
         kept = []
         for ring in placed_rings:
@@ -239,16 +251,16 @@ def render_dict(name, entries, quote):
     return f'{name} = {{\n{body}}}\n'
 
 
-def render_paths(paths):
+def render_paths(paths, codes, name='STATE_PATHS'):
     lines = []
-    for code in CONUS:
+    for code in codes:
         parts = []
         for ring in paths[code]:
             head = f'M{ring[0][0]:.{DECIMALS}f} {ring[0][1]:.{DECIMALS}f}'
             tail = ''.join(f'L{x:.{DECIMALS}f} {y:.{DECIMALS}f}' for x, y in ring[1:])
             parts.append(head + tail + 'Z')
         lines.append((code, "'" + ''.join(parts) + "'"))
-    return render_dict('STATE_PATHS', lines, "'")
+    return render_dict(name, lines, "'")
 
 
 def replace_block(text, name, rendered):
@@ -295,7 +307,7 @@ def parse_rings(path):
     return rings
 
 
-def report(paths, points):
+def report(paths, points, prov_paths=None):
     committed = {code: parse_rings(path) for code, path in server.STATE_PATHS.items()}
     vertices = sum(len(r) for code in paths for r in paths[code])
     was = sum(len(r) for code in committed for r in committed[code])
@@ -311,6 +323,9 @@ def report(paths, points):
     if islands:
         print(f'          the other {len(islands)} keep a different number of specks:')
         print('          ' + ', '.join(f'{c} {n} vs {w}' for c, n, w in islands))
+    if prov_paths is not None:
+        pv = sum(len(r) for c in PROVINCES for r in prov_paths[c])
+        print(f'provinces {len(PROVINCES)} outlines, {pv} vertices (geography only)')
     print(f'city dots {len(points)}, was {len(server.CITY_POINTS)}')
     for name in sorted(points):
         if name in server.CITY_POINTS:
@@ -332,17 +347,24 @@ def main(argv=None):
     server = server_module
 
     raw, where = cached_source(args.source)
-    rings = load_rings(raw, where)
-    paths, labels = build_states(rings)
+    state_rings, province_rings = load_rings(raw, where)
+    paths, labels = build_shapes(state_rings, CONUS)
+    prov_paths, prov_labels = build_shapes(province_rings, PROVINCES)
     points = build_cities(server.CITIES)
-    report(paths, points)
+    report(paths, points, prov_paths)
 
     if not args.write:
         print('\nnothing written. --write rewrites server.py.')
         return 0
 
     text = SERVER.read_text(encoding='utf-8')
-    text = replace_block(text, 'STATE_PATHS', render_paths(paths))
+    text = replace_block(text, 'STATE_PATHS', render_paths(paths, CONUS))
+    text = replace_block(text, 'CANADA_PATHS',
+                         render_paths(prov_paths, PROVINCES, 'CANADA_PATHS'))
+    text = replace_block(text, 'CANADA_LABELS',
+                         render_dict('CANADA_LABELS',
+                                     [(c, f'({prov_labels[c][0]}, {prov_labels[c][1]})')
+                                      for c in PROVINCES], "'"))
     text = replace_block(text, 'STATE_LABELS',
                          render_dict('STATE_LABELS',
                                      [(c, f'({labels[c][0]}, {labels[c][1]})') for c in CONUS],

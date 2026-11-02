@@ -58,10 +58,20 @@ the date in the sitemap cannot drift apart.
 
 ## Updating the map
 
-The map is generated, not drawn. `STATE_PATHS`, `STATE_LABELS` and `CITY_POINTS`
-all come out of `tools/make_map.py`, which projects Natural Earth's public-domain
-state outlines and the `at` coordinates on each city's own row. So a new city is
-two things: the row with its coordinates, and a run of the tool.
+The map is generated, not drawn. `STATE_PATHS`, `STATE_LABELS`, `CANADA_PATHS`,
+`CANADA_LABELS` and `CITY_POINTS` all come out of `tools/make_map.py`, which
+projects Natural Earth's public-domain outlines and the `at` coordinates on each
+city's own row. So a new city is two things: the row with its coordinates, and a
+run of the tool.
+
+Canada is in those tables as geography, not as coverage. The ten provinces are
+drawn so the service area has a visible northern boundary instead of appearing to
+stop at the 49th parallel, but no operator carries paying passengers there yet,
+so no province is highlighted and no dot lands on it. The ten provinces are used
+rather than all thirteen: the territories reach past 80 north, which would
+triple the height of the map to show land no car is going to. When a Canadian
+service opens, it becomes a row in `CITIES` like any other, and the province
+starts highlighting on the next run.
 
 ```powershell
 python tools\make_map.py            # report what would change

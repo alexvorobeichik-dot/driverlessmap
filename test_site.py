@@ -206,17 +206,36 @@ class SiteTests(unittest.TestCase):
 
     def test_map_geometry_is_sane(self):
         # Every coordinate has to land inside the viewBox, or states fall off the
-        # edge of the map. Cheap check, catches a broken projection.
-        width, height = (float(n) for n in server.MAP_VIEWBOX.split()[2:4])
-        for code, path in server.STATE_PATHS.items():
-            with self.subTest(state=code):
+        # edge of the map. The window now starts above and left of the origin to
+        # hold Canada, so the bounds come from all four numbers rather than being
+        # assumed to begin at zero.
+        min_x, min_y, width, height = (float(n) for n in server.MAP_VIEWBOX.split())
+        max_x, max_y = min_x + width, min_y + height
+        shapes = dict(server.STATE_PATHS)
+        shapes.update(server.CANADA_PATHS)
+        for code, path in shapes.items():
+            with self.subTest(shape=code):
                 numbers = [float(n) for n in path.replace('M', ' ').replace('L', ' ')
                            .replace('Z', ' ').split()]
                 xs, ys = numbers[0::2], numbers[1::2]
-                self.assertGreaterEqual(min(xs), -1)
-                self.assertLessEqual(max(xs), width + 1)
-                self.assertGreaterEqual(min(ys), -1)
-                self.assertLessEqual(max(ys), height + 1)
+                self.assertGreaterEqual(min(xs), min_x - 1)
+                self.assertLessEqual(max(xs), max_x + 1)
+                self.assertGreaterEqual(min(ys), min_y - 1)
+                self.assertLessEqual(max(ys), max_y + 1)
+
+    def test_map_draws_canada_as_geography_only(self):
+        # Canada is context, not coverage. No province may be highlighted, and
+        # the provinces have to sit underneath the states so the border reads.
+        _, _, body = self.get('/')
+        self.assertEqual(body.count('<path class="ca"'), len(server.CANADA_PATHS),
+                         'one outline per province')
+        self.assertEqual(len(server.CANADA_PATHS), 10, 'the ten provinces')
+        self.assertNotIn('class="ca on"', body,
+                         'no province is highlighted while no service exists there')
+        self.assertLess(body.index('<path class="ca"'), body.index('<path class="st'),
+                        'provinces are drawn before states, so states sit on top')
+        self.assertIn('Waymo announced Toronto', body,
+                      'the map says why Canada carries no dots')
 
     def test_operators_page_covers_all_four(self):
         status, _, body = self.get('/operators')
