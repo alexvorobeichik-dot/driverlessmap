@@ -180,7 +180,7 @@ CITIES = [
 SUPERVISED = [
     {'market': 'San Francisco Bay Area, CA', 'operator': 'Tesla', 'note': 'Runs with a human safety monitor because Tesla holds no driverless permit in California. The CPUC said in March 2026 that Tesla is not operating an autonomous vehicle service.', 'source_name': 'Electrek, CPUC', 'source': 'https://electrek.co/2026/03/25/california-regulator-confirms-tesla-not-operating-autonomous-vehicle-service/'},
     {'market': 'Austin, Miami and others', 'operator': 'Zoox', 'note': 'Employee, family and friend rides precede public access in new markets, which is why a vehicle on the street is not evidence of a service you can book.', 'source_name': 'Zoox', 'source': 'https://zoox.com/journal/zoox-service-updates-and-expansions'},
-    {'market': 'Dallas, TX', 'operator': 'Avride', 'note': 'Hyundai IONIQ 5 robotaxis booked through Uber since 3 December 2025, with an on-board specialist in the driver seat on every trip, so it is not driverless. About 9 square miles across Downtown, Uptown, Turtle Creek and Deep Ellum.', 'source_name': 'Robotaxi Atlas, NHTSA', 'source': 'https://www.robotaxiatlas.com/operators/avride'},
+    {'market': 'Dallas, TX', 'operator': 'Avride', 'note': 'Hyundai IONIQ 5 robotaxis booked through Uber since 3 December 2025, with an on-board specialist in the driver seat on every trip, so it is not driverless. The area has grown from 9 square miles at launch to 31, covering central Dallas north of the Trinity River.', 'source_name': 'Avride, Uber', 'source': 'https://medium.com/avride/avride-expands-dallas-robotaxi-footprint-on-uber-4593544f0834'},
 ]
 
 UP_NEXT = [
