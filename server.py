@@ -29,7 +29,7 @@ DEFAULT_DESCRIPTION = ('Every city where driverless ride-hailing actually carrie
 # machine-readable and human-readable dates cannot drift apart.
 MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
           'July', 'August', 'September', 'October', 'November', 'December']
-_UPDATED = datetime.date(2026, 11, 1)
+_UPDATED = datetime.date(2026, 11, 3)
 DATESTAMP = _UPDATED.isoformat()
 UPDATED = f'{_UPDATED.day} {MONTHS[_UPDATED.month - 1]} {_UPDATED.year}'
 
@@ -153,6 +153,11 @@ CITIES = [
      'open': 'Open',
      'note': 'Model Y and Cybercab robotaxis. Expanded on 26 October 2026 to much of the 610 Loop and northwest Houston; drivers have since reported gaps inside the drawn boundary.',
      'source_name': 'Houston Public Media', 'source': 'https://www.houstonpublicmedia.org/articles/news/transportation/2026/10/26/565273/teslas-robotaxi-houston-service-expands-with-a-rocket-shaped-map'},
+    {'city': 'Fort Worth', 'region': 'TX', 'operator': 'Tesla', 'since': 'Nov 2026',
+     'at': (32.7555, -97.3308),
+     'open': 'Open',
+     'note': 'Launched on 2 November 2026 with Model Y robotaxis, unsupervised, across a 143 square mile zone reaching Saginaw, Benbrook and White Settlement. Tesla did not say how many cars serve it.',
+     'source_name': 'Not a Tesla App', 'source': 'https://www.notateslaapp.com/news/4932/tesla-expands-robotaxi-service-launches-unsupervised-rides-in-fort-worth'},
     {'city': 'Miami', 'region': 'FL', 'operator': 'Tesla', 'since': 'Jul 2026',
      'at': (25.7617, -80.1918),
      'open': 'Open',
@@ -183,7 +188,8 @@ UP_NEXT = [
     {'market': 'Waymo: London, Tokyo, Singapore, Toronto', 'status': 'International', 'note': 'London and Singapore announced, Tokyo opening in 2027 with Nihon Kotsu and GO, Toronto announced in October 2026. No public rides in any of them yet.', 'source_name': 'Waymo', 'source': 'https://waymo.com/updates/'},
     {'market': 'Zoox: Austin and Miami', 'status': 'Vehicle on the road', 'note': 'Purpose-built robotaxi has arrived in both, starting with employees before public access.', 'source_name': 'Zoox', 'source': 'https://zoox.com/journal/zoox-robotaxi-is-now-in-austin'},
     {'market': 'Zoox: Houston and San Diego', 'status': 'Testing', 'note': 'Testing with the retrofitted fleet, not yet the purpose-built robotaxi.', 'source_name': 'Zoox', 'source': 'https://zoox.com/where-to-ride'},
-    {'market': 'Tesla: Dallas', 'status': 'Named, no date', 'note': "Tesla's AI director said \"Dallas soon\" on 11 October 2026. Tesla has repeatedly named cities without dates.", 'source_name': 'Teslarati', 'source': 'https://www.teslarati.com/tesla-cybercab-dallas/'},
+    {'market': 'Tesla: Dallas', 'status': 'Cybercab, November 2026', 'note': 'Tesla said on its Q3 call that the Cybercab reaches Dallas in November 2026. Riders there are on Model Y until then, and no day has been given.', 'source_name': 'TechCrunch', 'source': 'https://techcrunch.com/2026/10/22/tesla-is-prepping-a-cybercab-onslaught/'},
+    {'market': 'Tesla: Detroit', 'status': 'Testing', 'note': 'Two dozen Cybercabs operating out of Tesla\'s Southfield site, with test drivers and temporary steering wheels. Not a public service; Waymo is testing there too.', 'source_name': 'Detroit News', 'source': 'https://www.detroitnews.com/story/business/autos/2026/11/03/tesla-joins-waymo-by-testing-cybercab-robotaxis-in-detroit-exclusive/92561830007/'},
 ]
 
 # Operators, for the summary table. Vehicle counts are given only when a source
@@ -198,7 +204,7 @@ OPERATORS = [
      'note': 'Holds the first Part 555 commercial exemption NHTSA has granted for a purpose-built robotaxi, which is the regulatory event worth watching here.',
      'source_name': 'Zoox', 'source': 'https://zoox.com/journal/zoox-nhtsa-part-555-commercial-exemption'},
     {'name': 'Tesla', 'owner': 'Tesla', 'vehicle': 'Cybercab in Austin; modified Model Y elsewhere',
-     'cities': '6 markets, Cybercab in 1', 'vehicles': '1,204 registered in Texas, of which 573 are Cybercabs',
+     'cities': '7 markets, Cybercab in 1', 'vehicles': '1,204 registered in Texas, of which 573 are Cybercabs',
      'note': 'The only operator using two different vehicle types under one brand. Only Austin carries passengers in the Cybercab, which is a distinction most coverage blurs.',
      'source_name': 'Drive Tesla, Texas DMV', 'source': 'https://driveteslacanada.ca/news/tesla-robotaxi-fleet-surges-to-1204-vehicles-in-texas-closing-in-on-waymo'},
     {'name': 'Uber', 'owner': 'Uber', 'vehicle': 'None of its own',
@@ -395,6 +401,7 @@ CITY_POINTS = {
     'Austin': (228.1, 245.1),
     'Dallas': (237.5, 217.0),
     'Denver': (168.3, 134.7),
+    'Fort Worth': (232.5, 217.1),
     'Houston': (251.0, 250.9),
     'Las Vegas': (74.6, 161.5),
     'Los Angeles': (41.9, 178.7),
